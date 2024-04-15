@@ -14,6 +14,7 @@ import com.google.android.search.verification.client.SearchActionVerificationCli
 public class GoogleVoiceClientActivity extends SearchActionVerificationClientActivity {
 
     public Class<? extends SearchActionVerificationClientService> getServiceClass() {
+		
         return GoogleVoiceClientService.class;
     }
 }
