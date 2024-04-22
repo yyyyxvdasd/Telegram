@@ -3,6 +3,7 @@ package org.telegram.messenger;
 import android.os.SystemClock;
 import android.util.Log;
 
+import org.telegram.custom.TgUtilsKt;
 import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -385,6 +386,17 @@ public class FileRefController extends BaseController {
         } else if (parentObject instanceof MessageObject) {
             MessageObject messageObject = (MessageObject) parentObject;
             long channelId = messageObject.getChannelId();
+            //本地转发失败消息处理
+            ArrayList<Integer> reqIds= new ArrayList<>();
+            if(messageObject.getRealId()<0){
+                TLRPC.MessageFwdHeader fwd= messageObject.messageOwner.fwd_from;
+                if (fwd != null && fwd.from_id != null) {
+                    channelId = fwd.from_id.channel_id;
+                    int firstId=fwd.channel_post;
+                    reqIds.add(firstId);
+                    Log.i(TgUtilsKt.TAG,"send request messageObj local msg reqIds="+reqIds+", channelId="+channelId);
+                }
+            }
             if (messageObject.scheduled) {
                 TLRPC.TL_messages_getScheduledMessages req = new TLRPC.TL_messages_getScheduledMessages();
                 req.peer = getMessagesController().getInputPeer(messageObject.getDialogId());
@@ -392,9 +404,15 @@ public class FileRefController extends BaseController {
                 getConnectionsManager().sendRequest(req, (response, error) -> onRequestComplete(locationKey, parentKey, response, error, true, false));
             } else if (channelId != 0) {
                 TLRPC.TL_channels_getMessages req = new TLRPC.TL_channels_getMessages();
+                //todo ysz 可能调整这两个参数可以
                 req.channel = getMessagesController().getInputChannel(channelId);
                 req.id.add(messageObject.getRealId());
-                getConnectionsManager().sendRequest(req, (response, error) -> onRequestComplete(locationKey, parentKey, response, error, true, false));
+                //todo ysz test
+                if(reqIds.size() > 0){
+                    req.id.clear();
+                    req.id.addAll(reqIds);
+                }
+                getConnectionsManager().sendRequest(req, (response, error) -> onRequestComplete(locationKey, parentKey, response, error, true, false, parentObject));
             } else {
                 TLRPC.TL_messages_getMessages req = new TLRPC.TL_messages_getMessages();
                 req.id.add(messageObject.getRealId());
@@ -733,7 +751,12 @@ public class FileRefController extends BaseController {
         }
     }
 
-    private boolean onRequestComplete(String locationKey, String parentKey, TLObject response, TLRPC.TL_error error, boolean cache, boolean fromCache) {
+    private boolean onRequestComplete(String locationKey, String parentKey, TLObject response, TLRPC.TL_error error, boolean cache, boolean fromCache){
+        return onRequestComplete(locationKey, parentKey, response, error, cache, fromCache, null);
+    }
+
+
+    private boolean onRequestComplete(String locationKey, String parentKey, TLObject response, TLRPC.TL_error error, boolean cache, boolean fromCache,Object parentObj) {
         boolean found = false;
         String cacheKey = parentKey;
         if (response instanceof TLRPC.TL_help_premiumPromo) {
@@ -755,7 +778,7 @@ public class FileRefController extends BaseController {
                     if (requester.completed) {
                         continue;
                     }
-                    if (onRequestComplete(requester.locationKey, null, response, error, cache && !found, fromCache)) {
+                    if (onRequestComplete(requester.locationKey, null, response, error, cache && !found, fromCache, parentObj)) {
                         found = true;
                     }
                 }
@@ -798,6 +821,20 @@ public class FileRefController extends BaseController {
                         if (message.media != null) {
                             if (message.media.document != null) {
                                 result = getFileReference(message.media.document, requester.location, needReplacement, locationReplacement);
+                                if(result!=null&&parentObj instanceof MessageObject){
+                                    //找到文件处理，且为本地msg
+                                    MessageObject messageObject= (MessageObject) parentObj;
+                                    if(messageObject.getRealId()<0){
+                                        byte[] original=null;
+                                        if(messageObject.messageOwner.media!=null&&messageObject.messageOwner.media.document!=null){
+                                            original=messageObject.messageOwner.media.document.file_reference;
+                                        }
+                                        byte[] replace = message.media.document.file_reference;
+                                        messageObject.messageOwner.media = message.media;
+                                        Log.i(TgUtilsKt.TAG, "replace msgId=" + messageObject.getRealId() + ", original ref=" + Utilities.bytesToHex(original) + ", newRef=" + Utilities.bytesToHex(replace));
+                                        getMessagesStorage().replaceMessageIfExists(messageObject.messageOwner,new ArrayList<>(),new ArrayList<>(),false);
+                                    }
+                                }
                             } else if (message.media.game != null) {
                                 result = getFileReference(message.media.game.document, requester.location, needReplacement, locationReplacement);
                                 if (result == null) {
@@ -1377,5 +1414,10 @@ public class FileRefController extends BaseController {
 
     public static boolean isFileRefError(String error) {
         return "FILEREF_EXPIRED".equals(error) || "FILE_REFERENCE_EXPIRED".equals(error) || "FILE_REFERENCE_EMPTY".equals(error) || error != null && error.startsWith("FILE_REFERENCE_");
+    }
+
+    public void clear(){
+        locationRequester.clear();
+        parentRequester.clear();
     }
 }

@@ -38,6 +38,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import org.json.JSONObject;
+import org.telegram.custom.CommonFunKt;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -256,6 +257,7 @@ public class ApplicationLoader extends Application {
     @Override
     public void onCreate() {
         applicationLoaderInstance = this;
+        CommonFunKt.setApp(this);
         try {
             applicationContext = getApplicationContext();
         } catch (Throwable ignore) {

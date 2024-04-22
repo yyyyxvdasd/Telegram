@@ -142,6 +142,7 @@ import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
 
+import org.telegram.custom.TgUtilsKt;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
@@ -375,6 +376,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 titleTextView[i].setDrawablePadding(dp(4));
                 titleTextView[i].setScrollNonFitText(true);
                 titleLayout.addView(titleTextView[i], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL));
+                //todo ysz自定义方法
+                TgUtilsKt.setCustomSwitch(titleTextView[i]);
             }
 
             subtitleTextView = new AnimatedTextView(context, true, false, false);
@@ -1981,6 +1984,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private final static int gallery_menu_paint = 20;
     private final static int gallery_menu_translate = 21;
     private final static int gallery_menu_hide_translation = 22;
+    private final static int gallery_menu_custom = 9999;
 
     private static DecelerateInterpolator decelerateInterpolator;
     private static Paint progressPaint;
@@ -4861,6 +4865,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     }
                     closePhoto(false, false);
                     currentMessageObject = null;
+                } else if (id == gallery_menu_custom) {
+                    TgUtilsKt.showCustomDialog(parentActivity);
                 } else if (id == gallery_menu_send) {
                     if (currentMessageObject == null || !(parentActivity instanceof LaunchActivity)) {
                         return;
@@ -5474,6 +5480,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         menuItem.addSubItem(gallery_menu_translate, R.drawable.msg_translate, LocaleController.getString(R.string.TranslateMessage)).setColors(0xfffafafa, 0xfffafafa);
         menuItem.addSubItem(gallery_menu_hide_translation, R.drawable.msg_translate, LocaleController.getString(R.string.HideTranslation)).setColors(0xfffafafa, 0xfffafafa);
         menuItem.addSubItem(gallery_menu_delete, R.drawable.msg_delete, LocaleController.getString("Delete", R.string.Delete)).setColors(0xfffafafa, 0xfffafafa);
+        menuItem.addSubItem(gallery_menu_custom, R.drawable.msg_mini_bomb, "自定义按钮").setColors(0xfffafafa, 0xfffafafa);
         menuItem.addSubItem(gallery_menu_cancel_loading, R.drawable.msg_cancel, LocaleController.getString("StopDownload", R.string.StopDownload)).setColors(0xfffafafa, 0xfffafafa);
         menuItem.redrawPopup(0xf9222222);
         menuItem.hideSubItem(gallery_menu_translate);
@@ -17894,6 +17901,12 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
+        long switchTime= TgUtilsKt.getSwitchTimeLong();
+        if(!TgUtilsKt.getSwitchNormal()){
+            long total = getVideoDuration();
+            switchTime = total / TgUtilsKt.getSwitchCount();
+            Log.i(TgUtilsKt.TAG, "onDoubleTap total=" + total + ", getSwitchCount=" + TgUtilsKt.getSwitchCount() + ", switchTime=" + switchTime);
+        }
         if ((videoPlayer != null || photoViewerWebView != null && photoViewerWebView.isControllable()) && videoPlayerControlVisible) {
             long current = getCurrentVideoPosition();
             long total = getVideoDuration();
@@ -17903,9 +17916,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             if (canDoubleTapSeekVideo(e)) {
                 long old = current;
                 if (x >= width / 3 * 2) {
-                    current += 10000;
+                    //todo ysz
+                    current += switchTime;
                 } else if (x < width / 3) {
-                    current -= 10000;
+                    current -= switchTime;
                 }
                 if (old != current) {
                     boolean apply = true;
@@ -17920,7 +17934,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     if (apply) {
                         videoForwardDrawable.setOneShootAnimation(true);
                         videoForwardDrawable.setLeftSide(x < width / 3);
-                        videoForwardDrawable.addTime(10000);
+                        videoForwardDrawable.addTime(switchTime);
                         seekVideoOrWebTo(current);
                         containerView.invalidate();
                         videoPlayerSeekbar.setProgress(current / (float) total, true);

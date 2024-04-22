@@ -3098,10 +3098,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
             if (imagePressed) {
-                if (currentMessageObject.isSendError()) {
+          /*      if (currentMessageObject.isSendError()) {
                     imagePressed = false;
                     result = false;
-                } else if (currentMessageObject.type == MessageObject.TYPE_GIF && buttonState == -1 && SharedConfig.isAutoplayGifs() && !currentMessageObject.isRepostPreview && photoImage.getAnimation() == null) {
+                } else*/ if (currentMessageObject.type == MessageObject.TYPE_GIF && buttonState == -1 && SharedConfig.isAutoplayGifs() && !currentMessageObject.isRepostPreview && photoImage.getAnimation() == null) {
                     imagePressed = false;
                     result = false;
                 }
@@ -13813,6 +13813,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             int mask = MessageObject.POSITION_FLAG_LEFT | MessageObject.POSITION_FLAG_RIGHT;
                             fullWidth = (currentPosition.flags & mask) == mask;
                         }
+                        //todo ysz 设置任何视频都可以点击播放
+                        fullWidth=true;
                         if ((documentAttachType == DOCUMENT_ATTACH_TYPE_VIDEO || documentAttachType == DOCUMENT_ATTACH_TYPE_GIF && autoDownload) && canStreamVideo && hasDocLayout && fullWidth) {
                             drawVideoImageButton = true;
                             getIconForCurrentState();

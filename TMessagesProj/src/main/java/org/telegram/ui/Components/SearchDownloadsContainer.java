@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.telegram.custom.TgUtilsKt;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
@@ -43,6 +44,7 @@ import org.telegram.ui.FilteredSearchView;
 import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.PremiumPreviewFragment;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class SearchDownloadsContainer extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
@@ -92,6 +94,7 @@ public class SearchDownloadsContainer extends FrameLayout implements Notificatio
                 checkItemsFloodWait();
             }
         };
+        TgUtilsKt.setSDownloadRecView(new WeakReference(recyclerListView));
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new TouchHelperCallback());
         itemTouchHelper.attachToRecyclerView(recyclerListView);
         addView(recyclerListView);

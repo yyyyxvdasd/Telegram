@@ -213,8 +213,8 @@ public class FileLoader extends BaseController {
     private int currentUploadSmallOperationsCount = 0;
 
 
-    private final ConcurrentHashMap<String, FileLoadOperation> loadOperationPaths = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, LoadOperationUIObject> loadOperationPathsUI = new ConcurrentHashMap<>(10, 1, 2);
+    public final ConcurrentHashMap<String, FileLoadOperation> loadOperationPaths = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, LoadOperationUIObject> loadOperationPathsUI = new ConcurrentHashMap<>(10, 1, 2);
     private HashMap<String, Long> uploadSizes = new HashMap<>();
 
     private HashMap<String, Boolean> loadingVideos = new HashMap<>();
@@ -678,6 +678,38 @@ public class FileLoader extends BaseController {
 //            }
         }
     }
+
+    /**
+     * todo ysz 自定义
+     */
+    public int cancelLoadAllFilesCustom() {
+        for (String fileName : loadOperationPathsUI.keySet()) {
+            LoadOperationUIObject uiObject = loadOperationPathsUI.get(fileName);
+            Runnable runnable = uiObject != null ? uiObject.loadInternalRunnable : null;
+            boolean removed = uiObject != null;
+            if (runnable != null) {
+                fileLoaderQueue.cancelRunnable(runnable);
+            }
+            fileLoaderQueue.postRunnable(() -> {
+                FileLoadOperation operation = loadOperationPaths.remove(fileName);
+                if (operation != null) {
+                    FileLoaderPriorityQueue queue = operation.getQueue();
+                    queue.cancel(operation);
+                }
+            });
+        }
+        fileLoaderQueue.postRunnable(() -> {
+            for (String fileName : loadOperationPaths.keySet()) {
+                FileLoadOperation operation = loadOperationPaths.remove(fileName);
+                if (operation != null) {
+                    FileLoaderPriorityQueue queue = operation.getQueue();
+                    queue.cancel(operation);
+                }
+            }
+        });
+        return loadOperationPathsUI.size()+loadOperationPaths.size();
+    }
+
 
     public FileUploadOperation findUploadOperationByRequestToken(final int requestToken) {
         for (FileUploadOperation operation : uploadOperationPaths.values()) {

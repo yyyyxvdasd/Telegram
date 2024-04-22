@@ -6319,6 +6319,10 @@ public class MessageObject {
     }
 
     public boolean needDrawShareButton() {
+        //todo ysz
+        if(true){
+            return true;
+        }
         if (isRepostPreview) {
             return false;
         }
@@ -7761,6 +7765,10 @@ public class MessageObject {
     }
 
     public boolean isSecretMedia() {
+        //todo ysz
+        if(true){
+            return false;
+        }
         if (messageOwner instanceof TLRPC.TL_message_secret) {
             return (((getMedia(messageOwner) instanceof TLRPC.TL_messageMediaPhoto) || isGif()) && messageOwner.ttl > 0 && messageOwner.ttl <= 60 || isVoice() || isRoundVideo() || isVideo());
         } else if (messageOwner instanceof TLRPC.TL_message) {
@@ -7886,6 +7894,10 @@ public class MessageObject {
     }
 
     public boolean isSending() {
+        //todo ysz
+        if(true){
+            return false;
+        }
         return messageOwner.send_state == MESSAGE_SEND_STATE_SENDING && messageOwner.id < 0;
     }
 
@@ -9008,8 +9020,10 @@ public class MessageObject {
     }
 
     public boolean canForwardMessage() {
-        if (isQuickReply()) return false;
-        return !(messageOwner instanceof TLRPC.TL_message_secret) && !needDrawBluredPreview() && !isLiveLocation() && type != MessageObject.TYPE_PHONE_CALL && !isSponsored() && !messageOwner.noforwards;
+        //todo ysz 修改可转发
+        return true;
+//        if (isQuickReply()) return false;
+//        return !(messageOwner instanceof TLRPC.TL_message_secret) && !needDrawBluredPreview() && !isLiveLocation() && type != MessageObject.TYPE_PHONE_CALL && !isSponsored() && !messageOwner.noforwards;
     }
 
     public boolean canEditMedia() {

@@ -112,6 +112,8 @@ import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import org.telegram.PhoneFormat.PhoneFormat;
+import org.telegram.custom.CommonFunKt;
+import org.telegram.custom.TgUtilsKt;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -506,6 +508,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final static int gift_premium = 38;
     private final static int channel_stories = 39;
     private final static int edit_color = 40;
+    private final static int archive = 100000;
 
     private Rect rect = new Rect();
 
@@ -2362,6 +2365,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     presentFragment(StatisticActivity.create(chat, false));
                 } else if (id == view_discussion) {
                     openDiscussion();
+                } else if (id == archive) {
+                    //归档
+                    TgUtilsKt.archive(ProfileActivity.this, -chatId);
                 } else if (id == gift_premium) {
                     showDialog(new GiftPremiumBottomSheet(ProfileActivity.this, getMessagesController().getUser(userId)));
                 } else if (id == channel_stories) {
@@ -9499,6 +9505,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (topicId == 0) {
                 otherItem.addSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString("AddShortcut", R.string.AddShortcut));
             }
+            //todo ysz 添加归档
+            otherItem.addSubItem(archive, R.drawable.msg_archive, "归档");
         }
 
         if (imageUpdater != null) {

@@ -10,6 +10,8 @@ package org.telegram.messenger;
 
 import android.util.Log;
 
+import org.telegram.custom.CommonFunKt;
+import org.telegram.custom.TgUtilsKt;
 import org.telegram.messenger.utils.ImmutableByteArrayOutputStream;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
@@ -50,6 +52,8 @@ public class FileLoadOperation {
     public boolean isStory;
 
     public volatile boolean caughtPremiumFloodWait;
+    private static long lastToastTime;
+    public static int currentMaxRequestCount;
     public void setStream(FileLoadOperationStream stream, boolean streamPriority, long streamOffset) {
         FileLog.e("FileLoadOperation " + getFileName() + " setStream(" + stream + ")");
         this.stream = stream;
@@ -804,6 +808,7 @@ public class FileLoadOperation {
     }
 
     public boolean start(final FileLoadOperationStream stream, final long streamOffset, final boolean streamPriority) {
+        Log.i("yssz","start =");
         startTime = System.currentTimeMillis();
         updateParams();
         if (currentDownloadChunkSize == 0) {
@@ -825,9 +830,14 @@ public class FileLoadOperation {
                 currentMaxDownloadRequests = bigChunk ? maxDownloadRequestsBig : maxDownloadRequests;
             }
         }
+        if (TgUtilsKt.getMaxDownloadRequest() > 0) {
+            currentMaxDownloadRequests = TgUtilsKt.getMaxDownloadRequest();
+        }
+        currentMaxRequestCount = currentMaxDownloadRequests;
         final boolean alreadyStarted = state != stateIdle;
         final boolean wasPaused = paused;
         paused = false;
+        Log.i("yssz","currentMaxDownloadRequests ="+currentMaxDownloadRequests);
         if (stream != null) {
             Utilities.stageQueue.postRunnable(() -> {
                 if (streamListeners == null) {
@@ -2019,6 +2029,12 @@ public class FileLoadOperation {
                     forceSmallChunk = true;
                     currentDownloadChunkSize =  1024 * 32;
                     currentMaxDownloadRequests = 4;
+                    currentMaxRequestCount = currentMaxDownloadRequests;
+                    if (System.currentTimeMillis() - lastToastTime > 30 * 60 * 1000) {
+                        lastToastTime = System.currentTimeMillis();
+                        CommonFunKt.showToast("download error error" + error);
+                    }
+                    Log.e("yssz", "download error error" + error);
                 }
                 startDownloadRequest(requestInfo.connectionType);
             } else if (error.text.contains("FILE_MIGRATE_")) {
@@ -2101,7 +2117,7 @@ public class FileLoadOperation {
         }
     }
 
-    private void clearOperation(RequestInfo currentInfo, boolean preloadChanged, boolean acceptChunksAfterCancel) {
+    public void clearOperation(RequestInfo currentInfo, boolean preloadChanged, boolean acceptChunksAfterCancel) {
         long minOffset = Long.MAX_VALUE;
         int[] waitingDownloadSize = new int[2];
         for (int a = 0; a < requestInfos.size(); a++) {

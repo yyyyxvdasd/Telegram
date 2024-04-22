@@ -90,6 +90,7 @@ import androidx.recyclerview.widget.LinearSmoothScrollerCustom;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
+import org.telegram.custom.TgUtilsKt;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimationNotificationsLocker;
@@ -2941,6 +2942,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (inPreviewMode || AndroidUtilities.isTablet() && folderId != 0) {
             actionBar.setOccupyStatusBar(false);
         }
+        //todo ysz
+        actionBar.setOnClickListener(v -> {
+            if (v.getContext() instanceof Activity) {
+                TgUtilsKt.showCustomDialog((Activity) v.getContext());
+            }
+        });
         return actionBar;
     }
 
@@ -7269,7 +7276,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         actionBar.openSearchField(query, false);
     }
 
-    private void showSearch(boolean show, boolean startFromDownloads, boolean animated) {
+    public void showSearch(boolean show, boolean startFromDownloads, boolean animated) {
         showSearch(show, startFromDownloads, animated, false);
     }
 

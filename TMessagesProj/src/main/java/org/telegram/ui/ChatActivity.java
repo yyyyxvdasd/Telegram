@@ -124,6 +124,7 @@ import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.zxing.common.detector.MathUtils;
 
 import org.telegram.PhoneFormat.PhoneFormat;
+import org.telegram.custom.TgUtilsKt;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -1379,6 +1380,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int share_business_link = 66;
     private final static int rename_business_link = 67;
     private final static int delete_business_link = 68;
+    private final static int custom_btn = 9999;
+    private final static int cancel_download = 10000;
+    private final static int archive = 10001;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -3247,7 +3251,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         return;
                     }
                     showDialog(AlertsCreator.createTTLAlert(getParentActivity(), currentEncryptedChat, themeDelegate).create());
-                } else if (id == clear_history || id == delete_chat || id == auto_delete_timer) {
+                } else if (id == custom_btn) {
+                    TgUtilsKt.showCustomDialog(getParentActivity());
+                } else if (id == archive) {
+                    TgUtilsKt.archive(ChatActivity.this, dialog_id);
+                } else if(id == cancel_download){
+                    TgUtilsKt.cancelAllDownload();
+                }else if (id == clear_history || id == delete_chat || id == auto_delete_timer) {
                     if (getParentActivity() == null) {
                         return;
                     }
@@ -3847,6 +3857,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             closeTopicItem = headerItem.lazilyAddSubItem(topic_close, R.drawable.msg_topic_close, LocaleController.getString("CloseTopic", R.string.CloseTopic));
             closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
         }
+        headerItem.lazilyAddSubItem(archive, R.drawable.msg_archive, "归档");
+        headerItem.lazilyAddSubItem(custom_btn, R.drawable.msg_mini_bomb, "自定义按钮");
+        headerItem.lazilyAddSubItem(cancel_download, R.drawable.msg_close, "取消下载");
         menu.setVisibility(inMenuMode ? View.GONE : View.VISIBLE);
 
         updateTitle(false);
@@ -34701,12 +34714,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             } else {
                 message.putInDownloadsStore = true;
             }
-            if (message.isSendError()) {
-                createMenu(cell, false, false, x, y);
-                return;
-            } else if (message.isSending()) {
-                return;
-            }
+//            if (message.isSendError()) {
+//                createMenu(cell, false, false, x, y);
+//                return;
+//            } else if (message.isSending()) {
+//                return;
+//            }
             if (message.isDice()) {
                 createUndoView();
                 if (undoView == null) {

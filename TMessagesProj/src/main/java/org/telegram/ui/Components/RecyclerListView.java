@@ -1273,6 +1273,18 @@ public class RecyclerListView extends RecyclerView {
         return null;
     }
 
+    //todo ysz 自定义方法
+    public void selectFirstMore() {
+        LayoutManager manager = getLayoutManager();
+        if (manager == null || onItemLongClickListener == null) {
+            return;
+        }
+        for (int i = 0; i < 100; i++) {
+            View view = manager.findViewByPosition(i);
+            onItemLongClickListener.onItemClick(view, i);
+        }
+    }
+
     protected boolean canHighlightChildAt(View child, float x, float y) {
         return true;
     }
