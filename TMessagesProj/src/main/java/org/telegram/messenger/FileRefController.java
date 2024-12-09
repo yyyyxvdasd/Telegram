@@ -407,15 +407,21 @@ public class FileRefController extends BaseController {
                 //todo ysz 可能调整这两个参数可以
                 req.channel = getMessagesController().getInputChannel(channelId);
                 req.id.add(messageObject.getRealId());
-                //todo ysz test
+                //todo ysz 将假消息id替换为真消息id
                 if(reqIds.size() > 0){
                     req.id.clear();
                     req.id.addAll(reqIds);
                 }
                 getConnectionsManager().sendRequest(req, (response, error) -> onRequestComplete(locationKey, parentKey, response, error, true, false, parentObject));
             } else {
+                //todo ysz针对个人消息or机器人消息
                 TLRPC.TL_messages_getMessages req = new TLRPC.TL_messages_getMessages();
                 req.id.add(messageObject.getRealId());
+                //todo ysz 将假消息id替换为真消息id
+                if(reqIds.size() > 0){
+                    req.id.clear();
+                    req.id.addAll(reqIds);
+                }
                 getConnectionsManager().sendRequest(req, (response, error) -> onRequestComplete(locationKey, parentKey, response, error, true, false));
             }
         } else if (parentObject instanceof TLRPC.TL_wallPaper) {

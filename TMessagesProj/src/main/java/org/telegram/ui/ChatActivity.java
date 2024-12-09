@@ -3857,9 +3857,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             closeTopicItem = headerItem.lazilyAddSubItem(topic_close, R.drawable.msg_topic_close, LocaleController.getString("CloseTopic", R.string.CloseTopic));
             closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
         }
-        headerItem.lazilyAddSubItem(archive, R.drawable.msg_archive, "归档");
-        headerItem.lazilyAddSubItem(custom_btn, R.drawable.msg_mini_bomb, "自定义按钮");
-        headerItem.lazilyAddSubItem(cancel_download, R.drawable.msg_close, "取消下载");
+        if (headerItem != null) {
+            headerItem.lazilyAddSubItem(archive, R.drawable.msg_archive, "归档");
+            headerItem.lazilyAddSubItem(custom_btn, R.drawable.msg_mini_bomb, "自定义按钮");
+            headerItem.lazilyAddSubItem(cancel_download, R.drawable.msg_close, "取消下载");
+        }
         menu.setVisibility(inMenuMode ? View.GONE : View.VISIBLE);
 
         updateTitle(false);
@@ -10759,6 +10761,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private boolean hasSelectedNoforwardsMessage() {
+        //todo ysz允许转发
+        if(true){
+            return false;
+        }
         try {
             for (int i = 0; i < selectedMessagesIds.length; ++i) {
                 for (int j = 0; j < selectedMessagesIds[i].size(); ++j) {

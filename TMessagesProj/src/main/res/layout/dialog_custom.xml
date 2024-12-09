@@ -127,7 +127,7 @@
             android:id="@+id/btn_enter_download"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="进入下载页11"/>
+            android:text="进入下载页2"/>
 
         <Button
             android:id="@+id/btn_select_more"

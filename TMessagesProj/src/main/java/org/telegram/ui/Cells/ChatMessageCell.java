@@ -13463,10 +13463,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 radialProgress.setIcon(getIconForCurrentState(), ifSame, animated);
                 return;
             }
+            //todo ysz sendError也传入fileName
             if (currentMessageObject.attachPathExists && !TextUtils.isEmpty(currentMessageObject.messageOwner.attachPath)) {
                 fileName = currentMessageObject.messageOwner.attachPath;
                 fileExists = true;
-            } else if (!currentMessageObject.isSendError() || documentAttachType == DOCUMENT_ATTACH_TYPE_AUDIO || documentAttachType == DOCUMENT_ATTACH_TYPE_MUSIC) {
+            } else {
                 fileName = currentMessageObject.getFileName();
                 fileExists = currentMessageObject.mediaExists;
             }
@@ -13507,7 +13508,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             hasMiniProgress = fileExists ? 1 : 2;
             fileExists = true;
         }
-        if (currentMessageObject.isSendError() || TextUtils.isEmpty(fileName) && (currentMessageObject.isAnyKindOfSticker() || !currentMessageObject.isSending() && !currentMessageObject.isEditing())) {
+        //todo ysz修改发送失败消息也显示视频图标
+        if (/*currentMessageObject.isSendError() || */TextUtils.isEmpty(fileName) &&!currentMessageObject.isSendError() && (currentMessageObject.isAnyKindOfSticker() || !currentMessageObject.isSending() && !currentMessageObject.isEditing())) {
             radialProgress.setIcon(MediaActionDrawable.ICON_NONE, ifSame, false);
             radialProgress.setMiniIcon(MediaActionDrawable.ICON_NONE, ifSame, false);
             videoRadialProgress.setIcon(MediaActionDrawable.ICON_NONE, ifSame, false);
